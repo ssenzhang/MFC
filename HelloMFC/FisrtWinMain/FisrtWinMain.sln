@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.1500
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FisrtWinMain", "FisrtWinMain.vcxproj", "{FF9031FE-5661-44F1-96F7-DF88ACF7A883}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FisrtWinMain", "FisrtWinMain\FisrtWinMain.vcxproj", "{FF9031FE-5661-44F1-96F7-DF88ACF7A883}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +26,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {C2C8C055-DA6D-4CEE-9679-A71DCFC9F1DE}
+		SolutionGuid = {690F8F2D-9636-4341-8EE3-614A5F525ED6}
 	EndGlobalSection
 EndGlobal

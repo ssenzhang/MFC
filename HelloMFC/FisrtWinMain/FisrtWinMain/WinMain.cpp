@@ -145,7 +145,7 @@ LRESULT CALLBACK WndProc(
 		return 0;
 	case WM_KEYDOWN:
 		TCHAR szTmp[32];
-		GetKeyNameText(lParam, szTmp, 32);
+		GetKeyNameText((long)lParam, szTmp, 32);
 		wsprintf(buf, TEXT("The %s was pressed down!"), szTmp);
 		MessageBox(hwnd, buf, TEXT("WM_KEYDOWM"), message);
 		return 0;
