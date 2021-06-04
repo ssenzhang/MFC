@@ -33,6 +33,5 @@
 
 # Visual Studio C++ 
 .vs
-x64/
-win32/
+debug/
 *.user  
