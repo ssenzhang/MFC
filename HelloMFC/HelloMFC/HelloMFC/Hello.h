@@ -1,6 +1,6 @@
 // Hello.h
 //////////////////////////////////////////////////////////////////////////
-/** 环境配置
+/** 工程配置
 	创建C++空项目，将子系统改为窗口，常规--MFC使用设置为在共享DLL中使用MFC或在静态库中使用MFC
 	前者打包时MFC的DLL内容不会包含在EXE文件中，EXE文件较小；
 	后者将DLL中的相关代码写进EXE文件中，文件较大，但可以在没有相关DLL的机器上运行
@@ -53,8 +53,15 @@ class CMainWindow : public CFrameWnd
 public:
 	CMainWindow();
 protected:
+	// afx_msg表明这是一个消息处理程序，可以省略afx_msg，编译时它将会简化成空白；
+	// afx_msg表示一个行为很像虚拟函数但却不需要虚表项的函数
 	afx_msg void OnPaint();
-	DECLARE_MESSAGE_MAP();
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg LRESULT OnSetText(WPARAM wParam, LPARAM lParam);
+
+	// 在类声明中通常时最后的语句，因为它使用C++关键字来指定其成员的可见度，可以在其后面插入声明其他类成员的语句，
+	// 但应当使用关键字public, protected, ptrivate开头，以确保为这些成员设置可见度
+	DECLARE_MESSAGE_MAP();  // protected: ...
 };
 
 #endif
