@@ -154,3 +154,87 @@ LRESULT CMainWindow::OnSetText(WPARAM wParam, LPARAM lParam)
 {
 	return wParam;
 }
+
+
+/************************************************************************
+消息映射的工作方式
+源码: Afxwin.h中的DECLARE_MESSAGE_MAP, BEGIN_MESSAGE_MAP, END_MESSAGE_MAP以及Wincore.cpp中的CWnd::WindowProc
+
+(现在版本的MFC?)
+> MFC的DECLARE_MESSAGE_MAP宏在类声明中添加3个成员:
+	1> 名为_messageEntries的私有的AFX_MSGMAP_ENTRY结构数组，其中包含将消息与消息处理程序程序相关联的信息；
+	2> 名为messageMap的静态AFX_MSGMAP结构，其中包含一个指向类中的_messageEntries数组的指针和一个指向基类中messageMap结构的指针；
+	3> 名为GetMessageMap的虚拟函数，该函数返回messageMap的地址。
+	对于一个动态的而不是静态链接到MFC的MFC应用程序，其宏的执行有些稍微不同，但工作原理是相同的。
+BEGIN_MESSAGE_MAP包含GetMessageMap函数的实现，和用来初始化messageMap结构的代码；
+BEGIN_MESSAGE_MAP和END_MESSAGE_MAP之间出现的宏填入到_messageEntries数组中，而END_MESSAGE_MAP使用一个NULL条目标记了数组的结尾。
+
+// In the class declaration
+DECLARE_MESSAGE_MAP()
+
+// In the class implementation
+DEGIN_MESSAGE_MAP(CMainWindow, CFrameWnd)
+	ON_WM_PAINT()
+END_MESSAGE_MAP
+编译器的预处理程序将生成下面的代码：、
+// In the class declaration
+private:
+	static const AFX_MSGMAP_ENTRY _messageEntries[];\
+protected:
+	static const AFX_MSGMAP messageMap;
+	virtual const AFX_MSGMAP * GetMessageMap() const;
+// In the class implementation
+const AFX_MSGMAP* CMinWindow::GetMessageMap() cosnt
+{ return &CMainWindow::messageMap;}
+
+cosnt AFX_MSGMAP CMainWindow::messageMap = {
+	&CFrameWnd::messageMap,
+	&CMainWindow::_messageEntries[0]
+};
+
+const AFX_MSGMAP_ENTRY CMainWindow::_messasgeEntries[] = {
+	{ WM_PAINT, 0, 0, AfxSig_vv,
+		(AFX_PMSG)(AFX_PMAGW)(void (CWnd::*)(void)OnPaint },
+	{ 0, 0, 0, 0, AfxSig_end, (AFX_PMSG)0 }
+};
+
+只要这个基础结构的位置合适，框架就可以调用GetMessageMap来获取一个指向CMainWindow的messageMap结构的指针。
+然后它可以搜索_messageEntries数组来查看CMainWindow是否有此消息处理程序。另外，
+如果需要它还能维持一指向CFrameWnd的messageMap结构的指针并搜索基类的消息映射。
+
+下面就是对当以以一个CMainWindow的消息抵达时所发生的事件的详细描述。
+要分派此消息，框架调用了CMainWindow从CWnd继承下来的虚拟WindowProc函数。
+WindowProc调用OnWndMsg，而OnWndMsg又调用GetMesageMap来获取一个指向CMainWindow::messageMap的指针
+，并搜索CMainWindow::_messageEntries来获取一个其消息ID与当前正等待处理的消息Id相匹配的条目。
+如果找到了该条目，对应的CMainWindow函数(其地址与该消息ID一同存储在_messageEntries数组中)就被调用。
+否则，OnWndMsg参考CMainWindow::messageMap获得一个指向CFrameWnd::messageMap的指针并未基类重复该过程。
+如果基类没有该消息的处理程序，则框架将上升以一个级别，参考基类的基类，相当系统地沿着继承链向上走，
+直到它找到以一个消息处理程序或者将该消息传递给Windows进行默认处理为止。
+图1-5从CMainWindow的消息映射条目开始，用示意图阐明了CMainWindow的消息映射，并表明框架在搜索一个匹配特定消息ID的处理程序所经过的路径。
+
+MFC的消息映射机制的作用相当于，它将消息连接到消息处理程序而不是使用虚拟函数的一种非常有效的方式。
+虚拟函数在空间上并不有效，因为他们需要虚表，而且即使虚表中的函数没有被覆盖，虚表也会消耗内存。
+相反，消息映射所使用的内存的数量与它所包含的条目个数成比例。
+由于程序员要执行一个包含所有不同消息类型的处理程序的窗口类是非常少见的，因此消息映射只是大约在每当CWnd使用HWND包装时保持几百字节的内存。
+/************************************************************************/
+
+/** Windows、字符集和_T宏
+	Microsoft Windows 98和Microsoft Windows NT使用两种不同的字符集来构成字符和字符串。
+	Windos 98及其以前的版本使用8位的ANSI字符集，类似与ACII字符集。
+	Windows NT和Windows 2000使用16位的Unicode字符集，它是ANSI的一个超集。
+	Unicode包含各种来自非U.S.字母表的字符。
+	使用ASNI字符编译的程序可以在Windows NT和Windows 2000上运行，但Unicode程序运行起来稍微快点，因为不需要将ANSI到UNICODE的转换。
+	Unicode不能在Windows 98上运行，除非将每个传递给Windows的字符串从Unicode转换位ANSI。
+
+	"Hello" -- 编译器将从ANSI字符组成字符串
+	L"Hello" -- 编译器将使用Unicode字符
+	但是如果使用了MFC的_T宏，_T("Hello")
+	如果定义了预处理程序符号_UNICODE，编译器将使用Unicode字符，否则使用ANSI字符。、
+	如果所有字符串都使用_T宏，那么可以通过定义_UNICODE生成一个特殊的仅适用于Windows NT的版本。
+	隐士定义这个符号将定义一个名为UINICODE(无下划线)的相关符号，它将选择众多Windows API函数中的Unicode版本。
+
+1> 将字符声明为THAR吗，如果定义了_UNICODE，TCHAR将求值为wchar_t，否则将变为char
+2> 不要使用char*或者wchar_t*来声明TCHAR字符串指针，而应使用TCHAR＊或者更佳的LPTST(指向TCAHR字符串的指针)或者LPCSTR(指向const TCHAR字符串的指针)
+3> 不要认为一个字符只有8位宽。如果将以字节表示的缓冲区长度转变为以字符表示的缓冲区大小，可以借助sizeof(TCHAR)划分缓冲区长度.
+4> 将对TCHAR字符串函数而不是ANSI的字符串函数，如使用_tcscat而不是strcat。
+*/
